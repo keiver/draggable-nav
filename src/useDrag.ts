@@ -36,60 +36,6 @@ export function useDrag(options: UseDragOptions = {}) {
     edgeRef.current = edge;
   }, [edge]);
 
-  // --- View Transition helper ---
-  const withViewTransition = useCallback((cb: () => void) => {
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if ("startViewTransition" in document && !prefersReducedMotion) {
-      (
-        document as unknown as {
-          startViewTransition: (cb: () => void) => void;
-        }
-      ).startViewTransition(cb);
-    } else {
-      cb();
-    }
-  }, []);
-
-  // --- Snap helpers ---
-  const snapToVertical = useCallback(
-    (nav: HTMLElement, newEdge: NavEdge) => {
-      withViewTransition(() => {
-        nav.style.transform = "";
-        flushSync(() => {
-          setMode("vertical");
-          setEdge(newEdge);
-          setIsDragging(false);
-        });
-        const rectAfter = nav.getBoundingClientRect();
-        const centeredY = (window.innerHeight - rectAfter.height) / 2;
-        offsetRef.current = { x: 0, y: centeredY - rectAfter.top };
-        nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
-      });
-    },
-    [withViewTransition]
-  );
-
-  const snapToHorizontal = useCallback(
-    (nav: HTMLElement) => {
-      withViewTransition(() => {
-        nav.style.transform = "";
-        flushSync(() => {
-          setMode("horizontal");
-          setEdge(null);
-          setIsDragging(false);
-        });
-        const rectAfter = nav.getBoundingClientRect();
-        const centeredX = (window.innerWidth - rectAfter.width) / 2;
-        offsetRef.current = { x: centeredX - rectAfter.left, y: 0 };
-        nav.style.transform = `translate3d(${offsetRef.current.x}px, 0, 0)`;
-      });
-    },
-    [withViewTransition]
-  );
-
   // --- Drag handlers ---
 
   const handlePointerDown = useCallback(
@@ -172,26 +118,89 @@ export function useDrag(options: UseDragOptions = {}) {
         newEdge = null;
       }
 
-      // Snap to left/right edge -> vertical, center on Y axis
-      if (
-        newMode === "vertical" &&
-        (newMode !== modeRef.current || newEdge !== edgeRef.current)
-      ) {
+      // Snap to left/right edge → vertical, center on Y axis
+      if (newMode === "vertical" && (newMode !== modeRef.current || newEdge !== edgeRef.current)) {
         isDraggingRef.current = false;
         setIsPointerDown(false);
         dragDeltaRef.current = { x: 0, y: 0 };
-        snapToVertical(nav, newEdge);
+
+        const prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+        if ("startViewTransition" in document && !prefersReducedMotion) {
+          (
+            document as unknown as {
+              startViewTransition: (cb: () => void) => void;
+            }
+          ).startViewTransition(() => {
+            flushSync(() => {
+              nav.style.transform = "";
+              setMode(newMode!);
+              setEdge(newEdge);
+              setIsDragging(false);
+            });
+            const rectAfter = nav.getBoundingClientRect();
+            const centeredY = (window.innerHeight - rectAfter.height) / 2;
+            offsetRef.current = { x: 0, y: centeredY - rectAfter.top };
+            nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
+          });
+        } else {
+          flushSync(() => {
+            setIsDragging(false);
+            setMode(newMode!);
+            setEdge(newEdge);
+          });
+          nav.style.transform = "";
+          const rectAfter = nav.getBoundingClientRect();
+          const centeredY = (window.innerHeight - rectAfter.height) / 2;
+          offsetRef.current = { x: 0, y: centeredY - rectAfter.top };
+          nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
+        }
       }
 
-      // Push to top/bottom edge -> horizontal, center on X axis
+      // Push to top/bottom edge → horizontal, center on X axis
       if (newMode === "horizontal" && modeRef.current === "vertical") {
         isDraggingRef.current = false;
         setIsPointerDown(false);
         dragDeltaRef.current = { x: 0, y: 0 };
-        snapToHorizontal(nav);
+
+        const prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+
+        if ("startViewTransition" in document && !prefersReducedMotion) {
+          (
+            document as unknown as {
+              startViewTransition: (cb: () => void) => void;
+            }
+          ).startViewTransition(() => {
+            nav.style.transform = "";
+            flushSync(() => {
+              setMode("horizontal");
+              setEdge(null);
+              setIsDragging(false);
+            });
+            const rectAfter = nav.getBoundingClientRect();
+            const centeredX = (window.innerWidth - rectAfter.width) / 2;
+            offsetRef.current = { x: centeredX - rectAfter.left, y: 0 };
+            nav.style.transform = `translate3d(${offsetRef.current.x}px, 0, 0)`;
+          });
+        } else {
+          nav.style.transform = "";
+          flushSync(() => {
+            setIsDragging(false);
+            setMode("horizontal");
+            setEdge(null);
+          });
+          const rectAfter = nav.getBoundingClientRect();
+          const centeredX = (window.innerWidth - rectAfter.width) / 2;
+          offsetRef.current = { x: centeredX - rectAfter.left, y: 0 };
+          nav.style.transform = `translate3d(${offsetRef.current.x}px, 0, 0)`;
+        }
       }
     },
-    [dragThreshold, edgeThreshold, snapToVertical, snapToHorizontal]
+    []
   );
 
   const handlePointerUp = useCallback(() => {
@@ -239,15 +248,82 @@ export function useDrag(options: UseDragOptions = {}) {
       newMode === "horizontal" && modeRef.current === "vertical";
 
     if (edgeSwitch) {
-      snapToVertical(nav, newEdge);
+      // Snap to edge, center on Y axis
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      if ("startViewTransition" in document && !prefersReducedMotion) {
+        (
+          document as unknown as {
+            startViewTransition: (cb: () => void) => void;
+          }
+        ).startViewTransition(() => {
+          flushSync(() => {
+            nav.style.transform = "";
+            setMode(newMode!);
+            setEdge(newEdge);
+            setIsDragging(false);
+          });
+          const rectAfter = nav.getBoundingClientRect();
+          const centeredY = (vh - rectAfter.height) / 2;
+          offsetRef.current = { x: 0, y: centeredY - rectAfter.top };
+          nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
+        });
+      } else {
+        flushSync(() => {
+          setIsDragging(false);
+          setMode(newMode!);
+          setEdge(newEdge);
+        });
+        nav.style.transform = "";
+        const rectAfter = nav.getBoundingClientRect();
+        const centeredY = (vh - rectAfter.height) / 2;
+        offsetRef.current = { x: 0, y: centeredY - rectAfter.top };
+        nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
+      }
     } else if (topBottomSwitch) {
-      snapToHorizontal(nav);
+      // Switch vertical → horizontal, center on X axis
+      const prefersReducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+
+      if ("startViewTransition" in document && !prefersReducedMotion) {
+        (
+          document as unknown as {
+            startViewTransition: (cb: () => void) => void;
+          }
+        ).startViewTransition(() => {
+          nav.style.transform = "";
+          flushSync(() => {
+            setMode("horizontal");
+            setEdge(null);
+            setIsDragging(false);
+          });
+          const rectAfter = nav.getBoundingClientRect();
+          const centeredX = (vw - rectAfter.width) / 2;
+          offsetRef.current = { x: centeredX - rectAfter.left, y: 0 };
+          nav.style.transform = `translate3d(${offsetRef.current.x}px, 0, 0)`;
+        });
+      } else {
+        nav.style.transform = "";
+        flushSync(() => {
+          setIsDragging(false);
+          setMode("horizontal");
+          setEdge(null);
+        });
+        const rectAfter = nav.getBoundingClientRect();
+        const centeredX = (vw - rectAfter.width) / 2;
+        offsetRef.current = { x: centeredX - rectAfter.left, y: 0 };
+        nav.style.transform = `translate3d(${offsetRef.current.x}px, 0, 0)`;
+      }
     } else {
+      // No mode change — just stop dragging, bar stays in place
       flushSync(() => {
         setIsDragging(false);
       });
     }
-  }, [edgeThreshold, snapToVertical, snapToHorizontal]);
+  }, []);
 
   // Prevent clicks from firing after a drag
   const handleClickCapture = useCallback((e: React.MouseEvent) => {

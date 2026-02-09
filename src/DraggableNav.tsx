@@ -42,18 +42,14 @@ export function DraggableNav({
         userSelect: "none",
         cursor: isDragging ? "grabbing" : "grab",
         willChange: isDragging ? "transform" : undefined,
-        // Default position: top-center for horizontal, edge for vertical
+        contain: isDragging ? "layout paint" : undefined,
+        viewTransitionName: "main-nav",
+        zIndex: 1000,
         ...(mode === "horizontal"
-          ? {
-              top: "1rem",
-              left: "50%",
-              transform: "translateX(-50%)",
-              right: undefined,
-            }
+          ? { top: "1rem", left: "50%", translate: "-50% 0", right: "auto" }
           : edge === "left"
-            ? { top: 0, left: "0.75rem", right: undefined }
-            : { top: 0, right: "0.75rem", left: undefined }),
-        zIndex: 40,
+            ? { top: "50%", left: "8px", right: "auto", translate: "0 -50%" }
+            : { top: "50%", right: "8px", left: "auto", translate: "0 -50%" }),
         ...style,
       }}
       onMouseDown={onMouseDown}
