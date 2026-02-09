@@ -3,7 +3,10 @@ import { jsx as _jsx } from "react/jsx-runtime";
 import { useDrag } from "./useDrag";
 export function DraggableNav({ children, className, style, edgeThreshold, dragThreshold, ariaLabel = "Navigation", }) {
     const { navRef, mode, edge, isDragging, onMouseDown, onTouchStart, onClickCapture, onDragStart, } = useDrag({ edgeThreshold, dragThreshold });
-    return (_jsx("nav", { ref: navRef, "aria-label": ariaLabel, className: className, style: {
+    const resolvedClassName = typeof className === "function"
+        ? className({ mode, edge, isDragging })
+        : className;
+    return (_jsx("nav", { ref: navRef, "aria-label": ariaLabel, className: resolvedClassName, style: {
             position: "fixed",
             display: "flex",
             flexDirection: mode === "horizontal" ? "row" : "column",

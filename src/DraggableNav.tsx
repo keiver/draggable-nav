@@ -22,11 +22,16 @@ export function DraggableNav({
     onDragStart,
   } = useDrag({ edgeThreshold, dragThreshold });
 
+  const resolvedClassName =
+    typeof className === "function"
+      ? className({ mode, edge, isDragging })
+      : className;
+
   return (
     <nav
       ref={navRef}
       aria-label={ariaLabel}
-      className={className}
+      className={resolvedClassName}
       style={{
         position: "fixed",
         display: "flex",

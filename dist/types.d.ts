@@ -8,7 +8,7 @@ export interface DragState {
 }
 export interface DraggableNavProps {
     children: (state: DragState) => ReactNode;
-    className?: string;
+    className?: string | ((state: DragState) => string);
     style?: React.CSSProperties;
     edgeThreshold?: number;
     dragThreshold?: number;
