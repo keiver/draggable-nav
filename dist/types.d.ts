@@ -1,0 +1,17 @@
+import type { ReactNode } from "react";
+export type NavMode = "horizontal" | "vertical";
+export type NavEdge = "left" | "right" | null;
+export interface DragState {
+    mode: NavMode;
+    edge: NavEdge;
+    isDragging: boolean;
+}
+export interface DraggableNavProps {
+    children: (state: DragState) => ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+    edgeThreshold?: number;
+    dragThreshold?: number;
+    ariaLabel?: string;
+}
+//# sourceMappingURL=types.d.ts.map
