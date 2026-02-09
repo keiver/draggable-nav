@@ -13,5 +13,6 @@ export interface DraggableNavProps {
     edgeThreshold?: number;
     dragThreshold?: number;
     ariaLabel?: string;
+    viewTransitionName?: string;
 }
 //# sourceMappingURL=types.d.ts.map

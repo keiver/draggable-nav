@@ -10,6 +10,7 @@ export function DraggableNav({
   edgeThreshold,
   dragThreshold,
   ariaLabel = "Navigation",
+  viewTransitionName: vtName,
 }: DraggableNavProps) {
   const {
     navRef,
@@ -41,9 +42,8 @@ export function DraggableNav({
         touchAction: "none",
         userSelect: "none",
         cursor: isDragging ? "grabbing" : "grab",
-        willChange: isDragging ? "transform" : undefined,
-        contain: isDragging ? "layout paint" : undefined,
-        viewTransitionName: "main-nav",
+        willChange: "transform",
+        viewTransitionName: vtName ?? "main-nav",
         zIndex: 1000,
         ...(mode === "horizontal"
           ? { top: "1rem", left: "50%", translate: "-50% 0", right: "auto" }

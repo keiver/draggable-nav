@@ -1,7 +1,7 @@
 "use client";
 import { jsx as _jsx } from "react/jsx-runtime";
 import { useDrag } from "./useDrag";
-export function DraggableNav({ children, className, style, edgeThreshold, dragThreshold, ariaLabel = "Navigation", }) {
+export function DraggableNav({ children, className, style, edgeThreshold, dragThreshold, ariaLabel = "Navigation", viewTransitionName: vtName, }) {
     const { navRef, mode, edge, isDragging, onMouseDown, onTouchStart, onClickCapture, onDragStart, } = useDrag({ edgeThreshold, dragThreshold });
     const resolvedClassName = typeof className === "function"
         ? className({ mode, edge, isDragging })
@@ -15,9 +15,8 @@ export function DraggableNav({ children, className, style, edgeThreshold, dragTh
             touchAction: "none",
             userSelect: "none",
             cursor: isDragging ? "grabbing" : "grab",
-            willChange: isDragging ? "transform" : undefined,
-            contain: isDragging ? "layout paint" : undefined,
-            viewTransitionName: "main-nav",
+            willChange: "transform",
+            viewTransitionName: vtName ?? "main-nav",
             zIndex: 1000,
             ...(mode === "horizontal"
                 ? { top: "1rem", left: "50%", translate: "-50% 0", right: "auto" }

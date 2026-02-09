@@ -2,11 +2,32 @@
   "name": "draggable-nav",
   "version": "1.0.0",
   "type": "module",
+  "description": "Draggable navigation bar for React with View Transitions API support",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keiver/draggable-nav"
+  },
+  "keywords": [
+    "react",
+    "navigation",
+    "draggable",
+    "view-transitions"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
   "scripts": {
     "build": "tsc",
     "prepare": "tsc",
@@ -14,13 +35,12 @@
     "test:watch": "vitest"
   },
   "peerDependencies": {
-    "react": "*",
-    "react-dom": "*"
+    "react": ">=18",
+    "react-dom": ">=18"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
     "@types/react": "*",
     "@types/react-dom": "*",
     "@vitejs/plugin-react": "^5.1.3",

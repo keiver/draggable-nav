@@ -28,13 +28,30 @@ export function useDrag(options: UseDragOptions = {}) {
   const offsetRef = useRef({ x: 0, y: 0 });
   const dragDeltaRef = useRef({ x: 0, y: 0 });
 
-  // Keep refs in sync with state
+  // Threshold refs — avoid stale closures in stable callbacks
+  const edgeThresholdRef = useRef(edgeThreshold);
+  const dragThresholdRef = useRef(dragThreshold);
+
+  // Keep refs in sync with state/props
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
   useEffect(() => {
     edgeRef.current = edge;
   }, [edge]);
+  useEffect(() => {
+    edgeThresholdRef.current = edgeThreshold;
+  }, [edgeThreshold]);
+  useEffect(() => {
+    dragThresholdRef.current = dragThreshold;
+  }, [dragThreshold]);
+
+  // Force GPU compositing layer at mount to prevent first-drag flicker
+  useEffect(() => {
+    if (navRef.current) {
+      navRef.current.style.transform = "translate3d(0, 0, 0)";
+    }
+  }, []);
 
   // --- Drag handlers ---
 
@@ -55,7 +72,7 @@ export function useDrag(options: UseDragOptions = {}) {
 
       // Check threshold before committing to drag
       if (!isDraggingRef.current) {
-        if (Math.abs(dx) < dragThreshold && Math.abs(dy) < dragThreshold)
+        if (Math.abs(dx) < dragThresholdRef.current && Math.abs(dy) < dragThresholdRef.current)
           return;
         isDraggingRef.current = true;
         hasDraggedRef.current = true;
@@ -104,15 +121,15 @@ export function useDrag(options: UseDragOptions = {}) {
       let newMode: NavMode | null = null;
       let newEdge: NavEdge = null;
 
-      if (clampedLeft < edgeThreshold) {
+      if (clampedLeft < edgeThresholdRef.current) {
         newMode = "vertical";
         newEdge = "left";
-      } else if (clampedRight > vw - edgeThreshold) {
+      } else if (clampedRight > vw - edgeThresholdRef.current) {
         newMode = "vertical";
         newEdge = "right";
       } else if (
         modeRef.current === "vertical" &&
-        (clampedTop < edgeThreshold || clampedBottom > vh - edgeThreshold)
+        (clampedTop < edgeThresholdRef.current || clampedBottom > vh - edgeThresholdRef.current)
       ) {
         newMode = "horizontal";
         newEdge = null;
@@ -146,12 +163,12 @@ export function useDrag(options: UseDragOptions = {}) {
             nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
           });
         } else {
+          nav.style.transform = "";
           flushSync(() => {
-            setIsDragging(false);
             setMode(newMode!);
             setEdge(newEdge);
+            setIsDragging(false);
           });
-          nav.style.transform = "";
           const rectAfter = nav.getBoundingClientRect();
           const centeredY = (window.innerHeight - rectAfter.height) / 2;
           offsetRef.current = { x: 0, y: centeredY - rectAfter.top };
@@ -226,15 +243,15 @@ export function useDrag(options: UseDragOptions = {}) {
     let newMode: NavMode | null = null;
     let newEdge: NavEdge = null;
 
-    if (rect.left < edgeThreshold) {
+    if (rect.left < edgeThresholdRef.current) {
       newMode = "vertical";
       newEdge = "left";
-    } else if (rect.right > vw - edgeThreshold) {
+    } else if (rect.right > vw - edgeThresholdRef.current) {
       newMode = "vertical";
       newEdge = "right";
     } else if (
       modeRef.current === "vertical" &&
-      (rect.top < edgeThreshold || rect.bottom > vh - edgeThreshold)
+      (rect.top < edgeThresholdRef.current || rect.bottom > vh - edgeThresholdRef.current)
     ) {
       newMode = "horizontal";
       newEdge = null;
@@ -271,12 +288,12 @@ export function useDrag(options: UseDragOptions = {}) {
           nav.style.transform = `translate3d(0, ${offsetRef.current.y}px, 0)`;
         });
       } else {
+        nav.style.transform = "";
         flushSync(() => {
-          setIsDragging(false);
           setMode(newMode!);
           setEdge(newEdge);
+          setIsDragging(false);
         });
-        nav.style.transform = "";
         const rectAfter = nav.getBoundingClientRect();
         const centeredY = (vh - rectAfter.height) / 2;
         offsetRef.current = { x: 0, y: centeredY - rectAfter.top };

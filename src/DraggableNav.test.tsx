@@ -181,13 +181,30 @@ describe("DraggableNav", () => {
   });
 
   // 9
-  it("applies grabbing cursor and willChange when dragging", () => {
+  it("has stable willChange and transform at mount for GPU compositing", () => {
+    render(
+      <DraggableNav>{() => <span>child</span>}</DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+
+    // willChange should always be "transform" — not conditional on isDragging
+    expect(nav.style.willChange).toBe("transform");
+    // Mount-time transform should include translate3d for GPU layer promotion
+    expect(nav.style.transform).toMatch(/translate3d/);
+  });
+
+  // 10 (renumbered)
+  it("applies grabbing cursor when dragging", () => {
     render(
       <DraggableNav>{() => <span>child</span>}</DraggableNav>
     );
 
     const nav = screen.getByRole("navigation");
     mockNavRect(nav, { left: 412, top: 16, width: 200, height: 40 });
+
+    // Before drag: grab cursor
+    expect(nav.style.cursor).toBe("grab");
 
     // Start drag
     act(() => {
@@ -208,6 +225,7 @@ describe("DraggableNav", () => {
     });
 
     expect(nav.style.cursor).toBe("grabbing");
+    // willChange should still be "transform" (static, not dynamic)
     expect(nav.style.willChange).toBe("transform");
 
     // Clean up
@@ -216,7 +234,19 @@ describe("DraggableNav", () => {
     });
   });
 
-  // 10
+  // 11
+  it("allows custom viewTransitionName", () => {
+    render(
+      <DraggableNav viewTransitionName="episode-nav">
+        {() => <span>child</span>}
+      </DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    expect(nav.style.viewTransitionName).toBe("episode-nav");
+  });
+
+  // 12
   it("renders children that respond to mode changes", () => {
     render(
       <DraggableNav>
