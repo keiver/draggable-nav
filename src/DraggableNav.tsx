@@ -1,7 +1,20 @@
 "use client";
 
+import { useId, useEffect, useRef, useState } from "react";
 import type { DraggableNavProps } from "./types";
 import { useDrag } from "./useDrag";
+
+const srOnly: React.CSSProperties = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  padding: 0,
+  margin: "-1px",
+  overflow: "hidden",
+  clip: "rect(0, 0, 0, 0)",
+  whiteSpace: "nowrap",
+  borderWidth: 0,
+};
 
 export function DraggableNav({
   children,
@@ -9,8 +22,11 @@ export function DraggableNav({
   style,
   edgeThreshold,
   dragThreshold,
+  keyboardStep,
   ariaLabel = "Navigation",
   viewTransitionName: vtName,
+  announcements,
+  instructions,
 }: DraggableNavProps) {
   const {
     navRef,
@@ -21,17 +37,44 @@ export function DraggableNav({
     onTouchStart,
     onClickCapture,
     onDragStart,
-  } = useDrag({ edgeThreshold, dragThreshold });
+    onKeyDown,
+  } = useDrag({ edgeThreshold, dragThreshold, keyboardStep });
+
+  const descriptionId = useId();
+  const [announcement, setAnnouncement] = useState("");
+  const hasMountedRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    const defaults = {
+      dockedLeft: "Navigation docked to left edge",
+      dockedRight: "Navigation docked to right edge",
+      horizontal: "Navigation at top center",
+    };
+    const merged = { ...defaults, ...announcements };
+    if (mode === "vertical" && edge === "left") setAnnouncement(merged.dockedLeft!);
+    else if (mode === "vertical" && edge === "right") setAnnouncement(merged.dockedRight!);
+    else if (mode === "horizontal") setAnnouncement(merged.horizontal!);
+  }, [mode, edge, announcements]);
 
   const resolvedClassName =
     typeof className === "function"
       ? className({ mode, edge, isDragging })
       : className;
 
+  const instructionText =
+    instructions ?? "Use arrow keys to reposition. Press Escape to reset.";
+
   return (
     <nav
       ref={navRef}
+      tabIndex={0}
       aria-label={ariaLabel}
+      aria-roledescription="draggable"
+      aria-describedby={descriptionId}
       className={resolvedClassName}
       style={{
         position: "fixed",
@@ -56,8 +99,15 @@ export function DraggableNav({
       onTouchStart={onTouchStart}
       onClickCapture={onClickCapture}
       onDragStart={onDragStart}
+      onKeyDown={onKeyDown}
     >
       {children({ mode, edge, isDragging })}
+      <span id={descriptionId} style={srOnly}>
+        {instructionText}
+      </span>
+      <div role="status" aria-live="polite" style={srOnly}>
+        {announcement}
+      </div>
     </nav>
   );
 }

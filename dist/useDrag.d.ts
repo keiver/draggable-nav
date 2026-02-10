@@ -1,8 +1,4 @@
-import type { NavMode, NavEdge } from "./types";
-interface UseDragOptions {
-    edgeThreshold?: number;
-    dragThreshold?: number;
-}
+import type { NavMode, NavEdge, UseDragOptions } from "./types";
 export declare function useDrag(options?: UseDragOptions): {
     navRef: import("react").RefObject<HTMLElement | null>;
     mode: NavMode;
@@ -12,6 +8,6 @@ export declare function useDrag(options?: UseDragOptions): {
     onTouchStart: (e: React.TouchEvent) => void;
     onClickCapture: (e: React.MouseEvent) => void;
     onDragStart: (e: React.DragEvent) => void;
+    onKeyDown: (e: React.KeyboardEvent) => void;
 };
-export {};
 //# sourceMappingURL=useDrag.d.ts.map

@@ -194,7 +194,7 @@ describe("DraggableNav", () => {
     expect(nav.style.transform).toMatch(/translate3d/);
   });
 
-  // 10 (renumbered)
+  // 10
   it("applies grabbing cursor when dragging", () => {
     render(
       <DraggableNav>{() => <span>child</span>}</DraggableNav>
@@ -289,5 +289,141 @@ describe("DraggableNav", () => {
     expect(screen.getByTestId("mode").textContent).toBe("vertical");
     expect(screen.getByTestId("edge").textContent).toBe("left");
     expect(nav.style.flexDirection).toBe("column");
+  });
+
+  // -------------------------------------------------------------------------
+  // Accessibility tests
+  // -------------------------------------------------------------------------
+
+  // 13
+  it("nav has tabIndex={0} for keyboard focusability", () => {
+    render(
+      <DraggableNav>{() => <span>child</span>}</DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    expect(nav).toHaveAttribute("tabindex", "0");
+  });
+
+  // 14
+  it("nav has aria-roledescription='draggable'", () => {
+    render(
+      <DraggableNav>{() => <span>child</span>}</DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    expect(nav).toHaveAttribute("aria-roledescription", "draggable");
+  });
+
+  // -------------------------------------------------------------------------
+  // Live region & instructions tests
+  // -------------------------------------------------------------------------
+
+  // 15
+  it("renders a live region with role='status'", () => {
+    render(
+      <DraggableNav>{() => <span>child</span>}</DraggableNav>
+    );
+
+    const liveRegion = screen.getByRole("status");
+    expect(liveRegion).toBeInTheDocument();
+    expect(liveRegion).toHaveAttribute("aria-live", "polite");
+  });
+
+  // 16
+  it("live region announces on mode change", () => {
+    render(
+      <DraggableNav>{() => <span>child</span>}</DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    mockNavRect(nav, { left: 412, top: 16, width: 200, height: 40 });
+
+    // Snap to left edge
+    act(() => {
+      nav.dispatchEvent(
+        new MouseEvent("mousedown", {
+          clientX: 500,
+          clientY: 30,
+          bubbles: true,
+        })
+      );
+    });
+    act(() => {
+      window.dispatchEvent(
+        new MouseEvent("mousemove", { clientX: 100, clientY: 30 })
+      );
+    });
+
+    const liveRegion = screen.getByRole("status");
+    expect(liveRegion.textContent).toBe("Navigation docked to left edge");
+  });
+
+  // 17
+  it("aria-describedby links to keyboard instructions", () => {
+    render(
+      <DraggableNav>{() => <span>child</span>}</DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    const describedBy = nav.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+
+    const instructionEl = document.getElementById(describedBy!);
+    expect(instructionEl).toBeInTheDocument();
+    expect(instructionEl!.textContent).toBe(
+      "Use arrow keys to reposition. Press Escape to reset."
+    );
+  });
+
+  // 18
+  it("custom announcements prop works", () => {
+    render(
+      <DraggableNav
+        announcements={{
+          dockedLeft: "Moved to the side!",
+          dockedRight: "Moved to the side!",
+          horizontal: "Back to top!",
+        }}
+      >
+        {() => <span>child</span>}
+      </DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    mockNavRect(nav, { left: 412, top: 16, width: 200, height: 40 });
+
+    // Snap to left edge
+    act(() => {
+      nav.dispatchEvent(
+        new MouseEvent("mousedown", {
+          clientX: 500,
+          clientY: 30,
+          bubbles: true,
+        })
+      );
+    });
+    act(() => {
+      window.dispatchEvent(
+        new MouseEvent("mousemove", { clientX: 100, clientY: 30 })
+      );
+    });
+
+    const liveRegion = screen.getByRole("status");
+    expect(liveRegion.textContent).toBe("Moved to the side!");
+  });
+
+  // 19
+  it("custom instructions prop works", () => {
+    render(
+      <DraggableNav instructions="Use arrow keys to move this menu!">
+        {() => <span>child</span>}
+      </DraggableNav>
+    );
+
+    const nav = screen.getByRole("navigation");
+    const describedBy = nav.getAttribute("aria-describedby");
+    const instructionEl = document.getElementById(describedBy!);
+    expect(instructionEl!.textContent).toBe("Use arrow keys to move this menu!");
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "draggable-nav",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "type": "module",
   "description": "Draggable navigation bar for React with View Transitions API support",
   "license": "MIT",
@@ -14,7 +14,12 @@
     "draggable",
     "view-transitions"
   ],
+  "bugs": {
+    "url": "https://github.com/keiver/draggable-nav/issues"
+  },
+  "homepage": "https://github.com/keiver/draggable-nav#readme",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {

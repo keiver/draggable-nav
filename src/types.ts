@@ -9,12 +9,22 @@ export interface DragState {
   isDragging: boolean;
 }
 
-export interface DraggableNavProps {
+export interface UseDragOptions {
+  edgeThreshold?: number;
+  dragThreshold?: number;
+  keyboardStep?: number;
+}
+
+export interface DraggableNavProps extends UseDragOptions {
   children: (state: DragState) => ReactNode;
   className?: string | ((state: DragState) => string);
   style?: React.CSSProperties;
-  edgeThreshold?: number;
-  dragThreshold?: number;
   ariaLabel?: string;
   viewTransitionName?: string;
+  announcements?: {
+    dockedLeft?: string;
+    dockedRight?: string;
+    horizontal?: string;
+  };
+  instructions?: string;
 }
